@@ -1,38 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 .App {
-  text-align: center;
+  min-height: 100vh;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+::-webkit-scrollbar-track {
+  background: rgb(15 23 42); /* slate-900 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(71 85 105); /* slate-600 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(51 65 85); /* slate-700 */
+}
+
+/* Custom PoE2 inspired animations */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
+@keyframes fadeIn {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Custom utility classes */
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* PoE2 button styles */
+.btn-primary {
+  @apply px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-blue-500/25 border border-blue-500;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg border border-slate-600 transition-all duration-200;
+}
+
+.btn-danger {
+  @apply px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg border border-red-500 transition-all duration-200;
+}
+
+/* PoE2 input styles */
+.input-primary {
+  @apply w-full px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all;
+}
+
+/* PoE2 card styles */
+.card-primary {
+  @apply bg-slate-700 border border-slate-600 rounded-lg p-6 hover:border-slate-500 transition-all duration-200;
+}
+
+/* Text glow effect for important elements */
+.text-glow {
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }

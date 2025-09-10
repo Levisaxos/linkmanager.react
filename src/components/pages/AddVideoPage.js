@@ -1,0 +1,327 @@
+import React, { useState } from 'react';
+import { validateVideoForm } from '../../utils/validation';
+import { generateDefaultTitle, isValidYouTubeUrl } from '../../utils/videoUtils';
+
+const AddVideoPage = ({ addVideo, videos, tags }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    url: '',
+    tagIds: []
+  });
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Handle URL change with auto-title generation
+  const handleUrlChange = (url) => {
+    setFormData(prev => ({ ...prev, url }));
+    
+    // Auto-generate title if URL is valid YouTube URL and title is empty
+    if (url && !formData.title && isValidYouTubeUrl(url)) {
+      setFormData(prev => ({ 
+        ...prev, 
+        title: generateDefaultTitle(url)
+      }));
+    }
+    
+    // Clear URL errors when user types
+    if (errors.url) {
+      setErrors(prev => ({ ...prev, url: '' }));
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSuccessMessage('');
+
+    try {
+      // Validate form
+      const validationErrors = validateVideoForm(formData, videos);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
+
+      // Add video
+      const newVideo = addVideo({
+        title: formData.title.trim(),
+        url: formData.url.trim(),
+        tagIds: formData.tagIds
+      });
+
+      // Reset form
+      setFormData({ title: '', url: '', tagIds: [] });
+      setErrors({});
+      setSuccessMessage(`"${newVideo.title}" has been added to your collection!`);
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+
+    } catch (error) {
+      console.error('Error adding video:', error);
+      setErrors({ submit: 'Failed to add video. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Toggle tag selection
+  const toggleTag = (tagId) => {
+    setFormData(prev => ({
+      ...prev,
+      tagIds: prev.tagIds.includes(tagId)
+        ? prev.tagIds.filter(id => id !== tagId)
+        : [...prev.tagIds, tagId]
+    }));
+  };
+
+  // Clear form
+  const clearForm = () => {
+    setFormData({ title: '', url: '', tagIds: [] });
+    setErrors({});
+    setSuccessMessage('');
+  };
+
+  return (
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-slate-100">Add New Video</h1>
+          <span className="px-2 py-1 bg-green-600 text-white rounded-lg text-sm font-semibold">
+            Quest
+          </span>
+        </div>
+        <p className="text-slate-400">
+          Expand your collection with a new YouTube video
+        </p>
+      </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-6 p-4 bg-green-600/20 border border-green-500/50 rounded-lg">
+          <div className="flex items-center space-x-2">
+            <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-green-400 font-medium">{successMessage}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-slate-700 border border-slate-600 rounded-lg p-6">
+          {/* URL Field */}
+          <div className="mb-6">
+            <label htmlFor="url" className="block text-sm font-medium text-slate-300 mb-2">
+              YouTube URL *
+            </label>
+            <div className="relative">
+              <input
+                type="url"
+                id="url"
+                value={formData.url}
+                onChange={(e) => handleUrlChange(e.target.value)}
+                className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                  errors.url ? 'border-red-500 focus:ring-red-500' : 'border-slate-600'
+                }`}
+                placeholder="https://www.youtube.com/watch?v=..."
+              />
+              {isValidYouTubeUrl(formData.url) && (
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            {errors.url && (
+              <p className="mt-2 text-sm text-red-400 flex items-center space-x-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{errors.url}</span>
+              </p>
+            )}
+          </div>
+
+          {/* Title Field */}
+          <div className="mb-6">
+            <label htmlFor="title" className="block text-sm font-medium text-slate-300 mb-2">
+              Video Title *
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className={`w-full px-4 py-3 bg-slate-800 border rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                errors.title ? 'border-red-500 focus:ring-red-500' : 'border-slate-600'
+              }`}
+              placeholder="Enter a descriptive title for the video"
+              maxLength={100}
+            />
+            <div className="flex justify-between mt-1">
+              {errors.title ? (
+                <p className="text-sm text-red-400 flex items-center space-x-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>{errors.title}</span>
+                </p>
+              ) : (
+                <span></span>
+              )}
+              <span className="text-xs text-slate-400">
+                {formData.title.length}/100
+              </span>
+            </div>
+          </div>
+
+          {/* Tags Selection */}
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-3">
+              Tags (optional)
+            </label>
+            {tags.length > 0 ? (
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {tags.map(tag => (
+                    <button
+                      key={tag.id}
+                      type="button"
+                      onClick={() => toggleTag(tag.id)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border flex items-center space-x-2 ${
+                        formData.tagIds.includes(tag.id)
+                          ? 'border-blue-400 shadow-lg shadow-blue-400/20 text-white'
+                          : 'border-slate-600 text-slate-300 hover:border-slate-500'
+                      }`}
+                      style={formData.tagIds.includes(tag.id) ? { 
+                        backgroundColor: tag.color,
+                        borderColor: tag.color 
+                      } : { backgroundColor: 'rgb(51 65 85)' }}
+                    >
+                      <span>{tag.name}</span>
+                      {formData.tagIds.includes(tag.id) ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {formData.tagIds.length > 0 && (
+                  <p className="text-sm text-slate-400 flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <span>{formData.tagIds.length} tag(s) selected</span>
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <p className="text-yellow-400 text-sm">
+                    No tags available. Create tags in the Tags section to organize your videos.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Submit Errors */}
+        {errors.submit && (
+          <div className="bg-red-600/20 border border-red-500/50 rounded-lg p-4">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-red-400">{errors.submit}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex justify-end space-x-4">
+          <button
+            type="button"
+            onClick={clearForm}
+            className="px-6 py-3 text-slate-300 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg transition-all duration-200 flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span>Clear</span>
+          </button>
+          
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-all duration-200 flex items-center space-x-2 shadow-lg hover:shadow-blue-500/25"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Adding...</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span>Add Video</span>
+              </>
+            )}
+          </button>
+        </div>
+      </form>
+
+      {/* Tips Section */}
+      <div className="mt-8 bg-blue-600/10 border border-blue-500/30 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center space-x-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Pro Tips</span>
+        </h3>
+        <ul className="text-sm text-blue-300 space-y-2">
+          <li className="flex items-start space-x-2">
+            <span className="text-blue-400 mt-0.5">•</span>
+            <span>You can paste any YouTube URL format (watch, short URL, embed, etc.)</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <span className="text-blue-400 mt-0.5">•</span>
+            <span>Use descriptive titles to make videos easier to find later</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <span className="text-blue-400 mt-0.5">•</span>
+            <span>Add relevant tags to organize and filter your videos effectively</span>
+          </li>
+          <li className="flex items-start space-x-2">
+            <span className="text-blue-400 mt-0.5">•</span>
+            <span>The click counter will automatically track how often you visit each video</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default AddVideoPage;
