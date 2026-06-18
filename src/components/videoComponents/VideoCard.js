@@ -21,11 +21,11 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
     <div className="bg-slate-700 border border-slate-600 rounded-lg overflow-hidden hover:border-slate-500 transition-all duration-200 group animate-slideIn">
       {/* Thumbnail Section */}
       {imageUrl && (
-        <div className="relative aspect-video bg-slate-800">
+        <div className="relative aspect-[1/2] bg-slate-800">
           <img
             src={imageUrl}
             alt={video.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
             onError={(e) => {
               e.target.style.display = 'none';
             }}
