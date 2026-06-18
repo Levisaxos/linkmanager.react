@@ -21,7 +21,7 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
     <div className="bg-slate-700 border border-slate-600 rounded-lg overflow-hidden hover:border-slate-500 transition-all duration-200 group animate-slideIn">
       {/* Thumbnail Section */}
       {imageUrl && (
-        <div className="relative aspect-[1/2] bg-slate-800">
+        <div className="relative aspect-[9/16] bg-slate-800">
           <img
             src={imageUrl}
             alt={video.title}

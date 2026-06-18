@@ -88,7 +88,7 @@ const VideoCardList = ({ video, tags, onPlay, onDelete, onEdit }) => {
         {imageUrl && (
           <button
             onClick={handlePlayClick}
-            className="mr-4 flex-shrink-0 w-20 aspect-[1/2] rounded-lg overflow-hidden bg-slate-800 border border-slate-600"
+            className="mr-4 flex-shrink-0 w-20 aspect-[9/16] rounded-lg overflow-hidden bg-slate-800 border border-slate-600"
             title="Watch"
           >
             <img
