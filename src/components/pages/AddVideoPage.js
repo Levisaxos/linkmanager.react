@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { validateVideoForm } from '../../utils/validation';
 import { generateDefaultTitle, isValidYouTubeUrl } from '../../utils/videoUtils';
 import { compressImageFile, validateImageFile } from '../../utils/imageUtils';
@@ -30,12 +30,9 @@ const AddVideoPage = ({ addVideo, videos, tags }) => {
     }
   };
 
-  // Handle screenshot upload: validate, compress, then store as a data URL
-  const handleScreenshotChange = async (e) => {
-    const file = e.target.files[0];
-    e.target.value = ''; // allow re-selecting the same file later
-    if (!file) return;
-
+  // Validate, compress, then store an image file as a data URL.
+  // Shared by file upload, the clipboard button, and Ctrl+V paste.
+  const processScreenshotFile = useCallback(async (file) => {
     const validationError = validateImageFile(file);
     if (validationError) {
       setErrors(prev => ({ ...prev, screenshot: validationError }));
@@ -53,7 +50,64 @@ const AddVideoPage = ({ addVideo, videos, tags }) => {
     } finally {
       setIsProcessingImage(false);
     }
+  }, []);
+
+  // Handle screenshot upload from the file picker
+  const handleScreenshotChange = (e) => {
+    const file = e.target.files[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (file) processScreenshotFile(file);
   };
+
+  // Read an image directly from the clipboard (via the "Paste" button)
+  const handlePasteFromClipboard = async () => {
+    if (!navigator.clipboard?.read) {
+      setErrors(prev => ({
+        ...prev,
+        screenshot: 'Clipboard paste is not supported here. Press Ctrl+V or upload a file instead.'
+      }));
+      return;
+    }
+
+    try {
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        const imageType = item.types.find(type => type.startsWith('image/'));
+        if (imageType) {
+          const blob = await item.getType(imageType);
+          await processScreenshotFile(new File([blob], 'pasted-screenshot', { type: blob.type }));
+          return;
+        }
+      }
+      setErrors(prev => ({ ...prev, screenshot: 'No image found on the clipboard. Copy an image first.' }));
+    } catch (error) {
+      console.error('Error reading clipboard:', error);
+      setErrors(prev => ({
+        ...prev,
+        screenshot: 'Could not read the clipboard. Your browser may have blocked access — try Ctrl+V instead.'
+      }));
+    }
+  };
+
+  // Support pasting an image with Ctrl+V anywhere on this page
+  useEffect(() => {
+    const onPaste = (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            processScreenshotFile(file);
+          }
+          return;
+        }
+      }
+    };
+    document.addEventListener('paste', onPaste);
+    return () => document.removeEventListener('paste', onPaste);
+  }, [processScreenshotFile]);
 
   const removeScreenshot = () => {
     setFormData(prev => ({ ...prev, screenshot: '' }));
@@ -242,6 +296,7 @@ const AddVideoPage = ({ addVideo, videos, tags }) => {
                 </button>
               </div>
             ) : (
+              <div className="space-y-3">
               <label
                 className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg transition-all duration-200 ${
                   isProcessingImage
@@ -271,6 +326,22 @@ const AddVideoPage = ({ addVideo, videos, tags }) => {
                   className="hidden"
                 />
               </label>
+
+              <div className="flex items-center justify-center space-x-3">
+                <button
+                  type="button"
+                  onClick={handlePasteFromClipboard}
+                  disabled={isProcessingImage}
+                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-slate-200 border border-slate-600 rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                  </svg>
+                  <span>Paste from clipboard</span>
+                </button>
+                <span className="text-xs text-slate-500">or press Ctrl+V</span>
+              </div>
+              </div>
             )}
 
             {errors.screenshot && (
