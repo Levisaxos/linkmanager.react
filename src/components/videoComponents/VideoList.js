@@ -1,5 +1,6 @@
 import React from 'react';
 import VideoCard from './VideoCard';
+import { getYouTubeThumbnail } from '../../utils/videoUtils';
 
 const VideoList = ({ 
   videos, 
@@ -78,9 +79,26 @@ const VideoCardList = ({ video, tags, onPlay, onDelete, onEdit }) => {
     window.open(video.url, '_blank', 'noopener,noreferrer');
   };
 
+  // Prefer an uploaded screenshot; fall back to the YouTube thumbnail.
+  const imageUrl = video.screenshot || getYouTubeThumbnail(video.url);
+
   return (
     <div className="bg-slate-700 border border-slate-600 rounded-lg p-4 hover:border-slate-500 transition-all duration-200 group animate-slideIn">
       <div className="flex items-start justify-between">
+        {imageUrl && (
+          <button
+            onClick={handlePlayClick}
+            className="mr-4 flex-shrink-0 w-32 aspect-video rounded-lg overflow-hidden bg-slate-800 border border-slate-600"
+            title="Watch"
+          >
+            <img
+              src={imageUrl}
+              alt={video.title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </button>
+        )}
         <div className="flex-1 min-w-0">
           {/* Title */}
           <h3 className="text-lg font-semibold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors truncate">

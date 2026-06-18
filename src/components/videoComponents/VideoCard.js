@@ -14,15 +14,16 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
     window.open(video.url, '_blank', 'noopener,noreferrer');
   };
 
-  const thumbnailUrl = getYouTubeThumbnail(video.url);
+  // Prefer an uploaded screenshot; fall back to the YouTube thumbnail.
+  const imageUrl = video.screenshot || getYouTubeThumbnail(video.url);
 
   return (
     <div className="bg-slate-700 border border-slate-600 rounded-lg overflow-hidden hover:border-slate-500 transition-all duration-200 group animate-slideIn">
       {/* Thumbnail Section */}
-      {thumbnailUrl && (
+      {imageUrl && (
         <div className="relative aspect-video bg-slate-800">
           <img
-            src={thumbnailUrl}
+            src={imageUrl}
             alt={video.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             onError={(e) => {
