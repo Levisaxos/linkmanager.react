@@ -61,9 +61,9 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
       )}
 
       {/* Content Section */}
-      <div className="p-4">
+      <div className="p-3">
         {/* Title */}
-        <h3 className="text-lg font-semibold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors line-clamp-2">
+        <h3 className="text-sm font-semibold text-slate-100 mb-2 group-hover:text-blue-400 transition-colors line-clamp-2">
           {video.title}
         </h3>
 
@@ -90,16 +90,16 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
         )}
 
         {/* Video Info */}
-        <div className="flex items-center justify-between text-sm text-slate-400 mb-4">
-          <span>Added: {new Date(video.dateAdded).toLocaleDateString()}</span>          
-          <span>Clicked: {video.clickCount}</span>          
+        <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
+          <span>{new Date(video.dateAdded).toLocaleDateString()}</span>
+          <span>{video.clickCount} clicks</span>
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between">
           <Button
             variant="primary"
-            size="sm"
+            size="xs"
             onClick={handlePlayClick}
             icon={
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,11 +110,11 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
             Watch
           </Button>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {onEdit && (
               <Button
                 variant="ghost"
-                size="sm"
+                size="xs"
                 onClick={() => onEdit(video)}
                 icon={
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +128,7 @@ const VideoCard = ({ video, tags, onPlay, onDelete, onEdit }) => {
             
             <Button
               variant="ghost"
-              size="sm"
+              size="xs"
               onClick={() => onDelete(video.id)}
               icon={
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
